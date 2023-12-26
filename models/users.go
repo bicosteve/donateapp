@@ -1,0 +1,45 @@
+package models
+
+import (
+	"context"
+	"log"
+	"time"
+)
+
+type User struct {
+	ID          string    `json:"id"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phone_number"`
+	Password    string    `json:"password"`
+	CreateAt    time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (u *User) RegisterUser(user User) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+
+	defer cancel()
+
+	registerQuery := `
+						INSERT INTO users (email, phone_number,password,created_at,updated_at)
+						VALUES ($1,$2,$3,$4,$5) 
+						`
+
+	found, err := userExists(db, user)
+
+	if found == true {
+		log.Fatal("User already exist")
+		return nil, err
+	}
+
+	// EXECUTE QUERY
+	_, err = db.ExecContext(ctx, registerQuery, user.Email, user.PhoneNumber, user.Password, time.Now(), time.Now())
+
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return &user, nil
+
+}
