@@ -1,6 +1,7 @@
 package main
 
 import (
+	"donateapp/db"
 	"fmt"
 	"log"
 	"net/http"
@@ -50,8 +51,22 @@ func main() {
 		Port: os.Getenv("PORT"),
 	}
 
-	// To add the db connection dsn -> host, user, port, password, dbname
-	// Create dsn string with fmt.Sprintf
+	// Connecting to DB -> dsn:"user:password@tcp(host:port)/dbname"
+	dbHost := os.Getenv("DBHOST")
+	dbUser := os.Getenv("DBUSER")
+	dbPort := os.Getenv("DBPORT")
+	dbPassword := os.Getenv("DBPASSWORD")
+	dbName := os.Getenv("DBNAME")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	dbConnection, err := db.ConnectMysql(dsn)
+
+	if err != nil {
+		log.Fatal("Cannot connect to database")
+	}
+
+	defer dbConnection.DB.Close()
 
 	app := &Application{
 		Config: config,

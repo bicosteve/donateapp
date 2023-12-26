@@ -1,4 +1,4 @@
-package donateapp
+package appconfigs
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -19,7 +20,16 @@ type Application struct {
 }
 
 func (app *Application) Serve() error {
-	err := godotenv.Load()
+
+	rootDir, err := os.Getwd()
+
+	if err != nil {
+		log.Fatal("Error getting current directory")
+	}
+
+	envPath := filepath.Join(rootDir, ".env")
+
+	err = godotenv.Load(envPath)
 
 	if err != nil {
 		log.Fatal("Error loading .env file for app configs")
