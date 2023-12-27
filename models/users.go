@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"donateapp/helpers"
 	"log"
 	"time"
 )
@@ -27,15 +26,9 @@ func (u *User) RegisterUser(user User) (*User, error) {
 						VALUES ($1,$2,$3,$4,$5) 
 						`
 
-	found, err := helpers.UserExists(db, user)
-
-	if found == true {
-		log.Fatal("User already exist")
-		return nil, err
-	}
-
 	// EXECUTE QUERY
-	_, err = db.ExecContext(ctx, registerQuery, user.Email, user.PhoneNumber, user.Password, time.Now(), time.Now())
+	_, err := db.ExecContext(
+		ctx, registerQuery, user.Email, user.PhoneNumber, user.Password, time.Now(), time.Now())
 
 	if err != nil {
 		log.Fatal(err)
