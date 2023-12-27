@@ -2,6 +2,7 @@ package main
 
 import (
 	"donateapp/db"
+	"donateapp/models"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ type Config struct {
 type Application struct {
 	//Add Configs and Models
 	Config Config
-	// Todo Add Models
+	Models models.Models
 }
 
 func (app *Application) Serve() error {
@@ -37,6 +38,8 @@ func (app *Application) Serve() error {
 
 	return server.ListenAndServe()
 }
+
+// run server: nodemon --exec go run main.go --signal SIGTERM
 
 func main() {
 
@@ -70,7 +73,7 @@ func main() {
 
 	app := &Application{
 		Config: config,
-		// To add Models
+		Models: models.NewConnections(dbConnection.DB),
 	}
 
 	err = app.Serve()
