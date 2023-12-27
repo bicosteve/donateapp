@@ -2,17 +2,19 @@ package models
 
 import (
 	"context"
+	"donateapp/helpers"
 	"log"
 	"time"
 )
 
 type User struct {
-	ID          string    `json:"id"`
-	Email       string    `json:"email"`
-	PhoneNumber string    `json:"phone_number"`
-	Password    string    `json:"password"`
-	CreateAt    time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID              string    `json:"id"`
+	Email           string    `json:"email"`
+	PhoneNumber     string    `json:"phone_number"`
+	Password        string    `json:"password"`
+	ConfirmPassword string    `json:"confirm_password"`
+	CreateAt        time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 func (u *User) RegisterUser(user User) (*User, error) {
@@ -25,7 +27,7 @@ func (u *User) RegisterUser(user User) (*User, error) {
 						VALUES ($1,$2,$3,$4,$5) 
 						`
 
-	found, err := userExists(db, user)
+	found, err := helpers.UserExists(db, user)
 
 	if found == true {
 		log.Fatal("User already exist")
