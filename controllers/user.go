@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"database/sql"
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
+	"log"
 	"net/http"
 )
+
+var db *sql.DB
 
 var user models.User
 
@@ -40,6 +44,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		msg := "Password and confirm password do not match"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
+		return
+	}
+
+	found, err := helpers.UserExists(db, user)
+
+	if found == true {
+		log.Fatal("User already exist")
 		return
 	}
 
