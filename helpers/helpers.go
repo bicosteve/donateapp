@@ -50,7 +50,9 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	return nil
 }
 
-func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
+func WriteJSON(
+	w http.ResponseWriter, status int, data interface{}, headers ...http.Header,
+) error {
 	out, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -136,4 +138,8 @@ func ValidatePassword(user models.User) bool {
 		return false
 	}
 	return true
+}
+
+func HushPassword(password string) (string, error) {
+	return "", nil
 }

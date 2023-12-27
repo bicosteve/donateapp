@@ -5,7 +5,6 @@ import (
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -50,13 +49,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	found, err := helpers.UserExists(db, user)
 
 	if found == true {
-		log.Fatal("User already exist")
+		msg := "User already exists"
+		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
+		helpers.MessageLogs.ErrorLog.Println(msg)
 		return
 	}
 
 	user, err := user.RegisterUser(userData)
 	if err != nil {
-		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": err})
+		//helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": err})
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"donateapp/helpers"
 	"log"
 	"time"
 )
@@ -21,14 +22,20 @@ func (u *User) RegisterUser(user User) (*User, error) {
 
 	defer cancel()
 
+	hashPassword, err := helpers.HushPassword(user.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
 	registerQuery := `
 						INSERT INTO users (email, phone_number,password,created_at,updated_at)
 						VALUES ($1,$2,$3,$4,$5) 
 						`
 
 	// EXECUTE QUERY
-	_, err := db.ExecContext(
-		ctx, registerQuery, user.Email, user.PhoneNumber, user.Password, time.Now(), time.Now())
+	_, err = db.ExecContext(
+		ctx, registerQuery, user.Email, user.PhoneNumber, hashPassword, time.Now(), time.Now())
 
 	if err != nil {
 		log.Fatal(err)
