@@ -140,6 +140,6 @@ func ValidatePassword(user models.User) bool {
 	return true
 }
 
-func HushPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	return "", nil
 }

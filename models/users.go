@@ -22,7 +22,7 @@ func (u *User) RegisterUser(user User) (*User, error) {
 
 	defer cancel()
 
-	hashPassword, err := helpers.HushPassword(user.Password)
+	hashPassword, err := helpers.HashPassword(user.Password)
 
 	if err != nil {
 		return nil, err
