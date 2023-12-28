@@ -3,6 +3,7 @@ package main
 import (
 	"donateapp/db"
 	"donateapp/models"
+	"donateapp/routes"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,6 +35,7 @@ func (app *Application) Serve() error {
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%s", port),
 		// To add route handler
+		Handler: routes.Routes(),
 	}
 
 	return server.ListenAndServe()

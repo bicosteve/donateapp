@@ -1,14 +1,13 @@
 package helpers
 
 import (
-	"database/sql"
 	"donateapp/models"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
+	"net/mail"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -93,18 +92,21 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 	return nil
 }
 
-func UserExists(db *sql.DB, user models.User) (bool, error) {
-	row := db.QueryRow("SELECT id FROM users WHERE email LIKE %?%", user.Email)
-	var id int64
-	err := row.Scan(&id)
-	if err == sql.ErrNoRows {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
+//func UserExists(db *sql.DB, user *models.User) {*models.User, error } {
+//	defer db.Close()
+//	row, err := db.Query("SELECT * FROM users WHERE email = ?", user.Email)
+//	if err != nil {
+//		log.Fatal(err.Error())
+//	}
+//	found := row.Scan()
+//	if err == sql.ErrNoRows {
+//		return false, nil
+//	}
+//	if err != nil {
+//		return false, err
+//	}
+//	return true, nil
+//}
 
 func CheckValidUser(user models.User) bool {
 	if validateFields(user) == false {
@@ -114,10 +116,11 @@ func CheckValidUser(user models.User) bool {
 }
 
 func IsValidEmail(email string) bool {
-	// Email Expression Pattern
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-ZA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(email)
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func validateFields(user models.User) bool {
@@ -138,8 +141,4 @@ func ValidatePassword(user models.User) bool {
 		return false
 	}
 	return true
-}
-
-func HashPassword(password string) (string, error) {
-	return "", nil
 }
