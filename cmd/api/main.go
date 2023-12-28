@@ -63,7 +63,7 @@ func main() {
 	dbPassword := os.Getenv("DBPASSWORD")
 	dbName := os.Getenv("DBNAME")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	dbConnection, err := db.ConnectMysql(dsn)
 

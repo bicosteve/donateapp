@@ -17,6 +17,39 @@ type User struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
+func (u *User) RegisterUser(user User) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashedPassword, err := u.hashPassword(user)
+	if err != nil {
+		return nil, err
+	}
+
+	q := "INSERT INTO users (email, phone_number,password,created_at,updated_at) VALUES (?,?,?,?,?)"
+
+	_, err = db.ExecContext(
+		ctx, q, user.Email, user.PhoneNumber, hashedPassword, time.Now(), time.Now())
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return &user, nil
+
+}
+
+func (u *User) LoginUser(user User) *User {
+	isCorrectPassword := user.PasswordCompare(user)
+
+	if isCorrectPassword == false {
+		return nil
+	}
+
+	return &user
+
+}
+
 func (u *User) FindByEmail(user User) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -29,7 +62,6 @@ func (u *User) FindByEmail(user User) (bool, error) {
 	return true, nil
 }
 
-// Password hashing
 func (u *User) hashPassword(user User) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -38,32 +70,32 @@ func (u *User) hashPassword(user User) (string, error) {
 	return string(bytes), nil
 }
 
-func (u *User) RegisterUser(user User) (*User, error) {
+func (u *User) PasswordCompare(user User) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
+	var dbUser User
+	q := "SELECT * FROM users WHERE email = ?"
+	row := db.QueryRowContext(ctx, q, user.Email)
+	err := row.Scan(
+		&dbUser.ID,
+		&dbUser.Email,
+		&dbUser.PhoneNumber,
+		&dbUser.Password,
+		&dbUser.CreateAt,
+		&dbUser.UpdatedAt,
+	)
 
-	//isUser, err := u.findByEmail(user)
-	//if isUser == true {
-	//	return nil, err
-	//}
-
-	hashedPassword, err := u.hashPassword(user)
-	if err != nil {
-		return nil, err
-	}
-
-	q := "INSERT INTO users (email, phone_number,password,created_at,updated_at) VALUES (?,?,?,?,?)"
-
-	// EXECUTE QUERY
-	_, err = db.ExecContext(
-		ctx, q, user.Email, user.PhoneNumber, hashedPassword, time.Now(), time.Now())
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return false
 	}
 
-	return &user, nil
+	userPassword := []byte(user.Password)
+	dbPassword := []byte(dbUser.Password)
 
+	err = bcrypt.CompareHashAndPassword(dbPassword, userPassword)
+	if err != nil {
+		return false
+	}
+	return true
 }
-
-func passwordCompare() {}
