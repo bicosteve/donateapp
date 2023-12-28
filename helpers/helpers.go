@@ -1,14 +1,13 @@
 package helpers
 
 import (
-	"database/sql"
 	"donateapp/models"
 	"encoding/json"
 	"errors"
+	"github.com/asaskevich/govalidator"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -50,7 +49,9 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	return nil
 }
 
-func WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
+func WriteJSON(
+	w http.ResponseWriter, status int, data interface{}, headers ...http.Header,
+) error {
 	out, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -91,39 +92,16 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 	return nil
 }
 
-func UserExists(db *sql.DB, user models.User) (bool, error) {
-	row := db.QueryRow("SELECT id FROM users WHERE email LIKE %?%", user.Email)
-	var id int64
-	err := row.Scan(&id)
-	if err == sql.ErrNoRows {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+func IsValidEmail(email string) bool {
+	return govalidator.IsEmail(email)
 }
 
-func CheckValidUser(user models.User) bool {
-	if validateFields(user) == false {
+func CheckPhoneNumber(user models.User) bool {
+	phoneNumber := strings.TrimSpace(user.PhoneNumber)
+	if phoneNumber == "" {
 		return false
 	}
-	return true
-}
-
-func IsValidEmail(email string) bool {
-	// Email Expression Pattern
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-ZA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(email)
-}
-
-func validateFields(user models.User) bool {
-	email := strings.TrimSpace(user.Email)
-	phoneNumber := strings.TrimSpace(user.PhoneNumber)
-	password := strings.TrimSpace(user.Password)
-	confirmPassword := strings.TrimSpace(user.ConfirmPassword)
-	if email == "" && phoneNumber == "" && password == "" && confirmPassword == "" {
+	if len(phoneNumber) < 10 {
 		return false
 	}
 	return true
@@ -132,6 +110,12 @@ func validateFields(user models.User) bool {
 func ValidatePassword(user models.User) bool {
 	password := strings.TrimSpace(user.Password)
 	confirmPassword := strings.TrimSpace(user.ConfirmPassword)
+	if password == "" {
+		return false
+	}
+	if confirmPassword == "" {
+		return false
+	}
 	if password != confirmPassword {
 		return false
 	}
