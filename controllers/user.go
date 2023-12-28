@@ -1,33 +1,24 @@
 package controllers
 
 import (
-	"database/sql"
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
 	"net/http"
 )
 
-var db *sql.DB
-
-var user models.User
-
 // POST User -> api/v1/user/register
-
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	//ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	var user models.User
-
-	defer db.Close()
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		helpers.MessageLogs.ErrorLog.Println(err)
 	}
 
-	isValidUser := helpers.CheckValidUser(user)
-	if isValidUser == false {
-		msg := "All fields are required"
+	isValidNumber := helpers.CheckPhoneNumber(user)
+	if isValidNumber == false {
+		msg := "Phone number must be 10 numbers"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
 		return
@@ -43,20 +34,20 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	isValidPassword := helpers.ValidatePassword(user)
 	if isValidPassword == false {
-		msg := "Password and confirm password do not match"
+		msg := "Password cannot be empty & must match confirm password"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
 		return
 	}
-	//
-	//found, err := helpers.UserExists(db, user)
-	//
-	//if found == true {
-	//	msg := "User already exists"
-	//	helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
-	//	helpers.MessageLogs.ErrorLog.Println(msg)
-	//	return
-	//}
+
+	isUser, err := user.FindByEmail(user)
+	if isUser == true {
+		msg := "User already exists"
+		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
+		//helpers.ErrorJSON(w, err, http.StatusBadRequest)
+		helpers.MessageLogs.ErrorLog.Println(err)
+		return
+	}
 
 	createdUser, err := user.RegisterUser(user)
 	if err != nil {
@@ -65,5 +56,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
+
 	helpers.WriteJSON(w, http.StatusCreated, createdUser)
 }

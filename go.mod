@@ -7,6 +7,7 @@ require github.com/joho/godotenv v1.5.1
 require github.com/go-sql-driver/mysql v1.7.1
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/go-chi/chi/v5 v5.0.11 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	golang.org/x/crypto v0.17.0 // indirect

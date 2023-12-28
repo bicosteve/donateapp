@@ -17,7 +17,7 @@ type User struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
-func (u *User) findByEmail(user User) (bool, error) {
+func (u *User) FindByEmail(user User) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 	q := "SELECT email FROM users WHERE email = ?"
@@ -42,10 +42,10 @@ func (u *User) RegisterUser(user User) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	isUser, err := u.findByEmail(user)
-	if isUser == true {
-		return nil, err
-	}
+	//isUser, err := u.findByEmail(user)
+	//if isUser == true {
+	//	return nil, err
+	//}
 
 	hashedPassword, err := u.hashPassword(user)
 	if err != nil {
@@ -61,7 +61,7 @@ func (u *User) RegisterUser(user User) (*User, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	
+
 	return &user, nil
 
 }

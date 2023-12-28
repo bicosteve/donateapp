@@ -4,9 +4,9 @@ import (
 	"donateapp/models"
 	"encoding/json"
 	"errors"
+	"github.com/asaskevich/govalidator"
 	"log"
 	"net/http"
-	"net/mail"
 	"os"
 	"strings"
 )
@@ -92,43 +92,16 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 	return nil
 }
 
-//func UserExists(db *sql.DB, user *models.User) {*models.User, error } {
-//	defer db.Close()
-//	row, err := db.Query("SELECT * FROM users WHERE email = ?", user.Email)
-//	if err != nil {
-//		log.Fatal(err.Error())
-//	}
-//	found := row.Scan()
-//	if err == sql.ErrNoRows {
-//		return false, nil
-//	}
-//	if err != nil {
-//		return false, err
-//	}
-//	return true, nil
-//}
-
-func CheckValidUser(user models.User) bool {
-	if validateFields(user) == false {
-		return false
-	}
-	return true
-}
-
 func IsValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		return false
-	}
-	return true
+	return govalidator.IsEmail(email)
 }
 
-func validateFields(user models.User) bool {
-	email := strings.TrimSpace(user.Email)
+func CheckPhoneNumber(user models.User) bool {
 	phoneNumber := strings.TrimSpace(user.PhoneNumber)
-	password := strings.TrimSpace(user.Password)
-	confirmPassword := strings.TrimSpace(user.ConfirmPassword)
-	if email == "" && phoneNumber == "" && password == "" && confirmPassword == "" {
+	if phoneNumber == "" {
+		return false
+	}
+	if len(phoneNumber) < 10 {
 		return false
 	}
 	return true
@@ -137,6 +110,12 @@ func validateFields(user models.User) bool {
 func ValidatePassword(user models.User) bool {
 	password := strings.TrimSpace(user.Password)
 	confirmPassword := strings.TrimSpace(user.ConfirmPassword)
+	if password == "" {
+		return false
+	}
+	if confirmPassword == "" {
+		return false
+	}
 	if password != confirmPassword {
 		return false
 	}
