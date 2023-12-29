@@ -4,6 +4,7 @@ import (
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -88,10 +89,20 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	isValidPassword := user.PasswordCompare(user)
 	if isValidPassword == false {
-		msg := "Passwords and confirm password do not match"
+		msg := "Password and confirm password do not match"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
+
+	token, err := user.GenerateAuthToken(user)
+
+	if err != nil {
+		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": err})
+		helpers.MessageLogs.ErrorLog.Println(err)
+		return
+	}
+
+	fmt.Println(token)
 
 }

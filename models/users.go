@@ -2,8 +2,12 @@ package models
 
 import (
 	"context"
+	"errors"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"os"
 	"time"
 )
 
@@ -15,6 +19,12 @@ type User struct {
 	ConfirmPassword string    `json:"confirm_password"`
 	CreateAt        time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type Claims struct {
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	jwt.RegisteredClaims
 }
 
 func (u *User) RegisterUser(user User) (*User, error) {
@@ -39,15 +49,29 @@ func (u *User) RegisterUser(user User) (*User, error) {
 
 }
 
-func (u *User) LoginUser(user User) *User {
-	isCorrectPassword := user.PasswordCompare(user)
-
-	if isCorrectPassword == false {
-		return nil
+func (u *User) GenerateAuthToken(user User) (string, error) {
+	err := godotenv.Load()
+	if err != nil {
+		return "", errors.New("cannot load .env for jwt")
 	}
 
-	return &user
+	jwtKey := os.Getenv("JWTSECRET")
+	//expirationTime := time.Now().Add(time.Hour * 1)
+	claims := &Claims{
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
+		},
+	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		return "", errors.New("something went wrong with jwt key gen")
+	}
+	return tokenString, nil
 }
 
 func (u *User) FindByEmail(user User) (bool, error) {
@@ -65,7 +89,7 @@ func (u *User) FindByEmail(user User) (bool, error) {
 func (u *User) hashPassword(user User) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", errors.New("something went wrong with password hashing")
 	}
 	return string(bytes), nil
 }
