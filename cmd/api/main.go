@@ -23,7 +23,7 @@ type Application struct {
 }
 
 func (app *Application) Serve() error {
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load(".env")
 
 	if err != nil {
 		log.Fatal("Error loading .env file for app configs")
@@ -45,7 +45,7 @@ func (app *Application) Serve() error {
 
 func main() {
 
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load(".env")
 
 	if err != nil {
 		log.Fatal("Cannot load .env file")
@@ -63,7 +63,7 @@ func main() {
 	dbPassword := os.Getenv("DBPASSWORD")
 	dbName := os.Getenv("DBNAME")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	dbConnection, err := db.ConnectMysql(dsn)
 

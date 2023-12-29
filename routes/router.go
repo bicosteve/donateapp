@@ -23,7 +23,8 @@ func Routes() http.Handler {
 		MaxAge:           300,
 	}))
 
-	router.Post("/api/v1/users/register", controllers.CreateUser)
+	router.Post("/api/v1/users/auth/register", controllers.CreateUser)
+	router.Post("/api/v1/users/auth/login", controllers.LoginUser)
 
 	return router
 }
