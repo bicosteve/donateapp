@@ -4,8 +4,8 @@ import (
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"time"
 )
 
 // POST User -> api/v1/user/register
@@ -103,6 +103,33 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(token)
+	// Setting the cookie on headers
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: time.Now().Add(time.Hour * 1),
+	})
 
 }
+
+//func GetProfile(w http.ResponseWriter, r *http.Request) {
+//	cookie, err := r.Cookie("token")
+//	if err != nil {
+//		if err == http.ErrNoCookie {
+//			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Forbidden"})
+//			return
+//		}
+//
+//		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Bad Request"})
+//		return
+//	}
+//
+//	tokenStr := cookie.Value
+//
+//	claims := &models.Claims{}
+//
+//	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+//		func(t *jwt.Token) (interface{}, error) {
+//			return jwtKey, nil
+//		})
+//}

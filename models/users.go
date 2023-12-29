@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -50,13 +51,18 @@ func (u *User) RegisterUser(user User) (*User, error) {
 }
 
 func (u *User) GenerateAuthToken(user User) (string, error) {
-	err := godotenv.Load()
+	//fileName := ".env"
+	path, err := filepath.Abs(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = godotenv.Load(filepath.Join(path))
 	if err != nil {
 		return "", errors.New("cannot load .env for jwt")
 	}
 
 	jwtKey := os.Getenv("JWTSECRET")
-	//expirationTime := time.Now().Add(time.Hour * 1)
 	claims := &Claims{
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
@@ -66,10 +72,10 @@ func (u *User) GenerateAuthToken(user User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString([]byte(jwtKey))
 
 	if err != nil {
-		return "", errors.New("something went wrong with jwt key gen")
+		return "", err
 	}
 	return tokenString, nil
 }
