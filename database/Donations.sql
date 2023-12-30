@@ -1,0 +1,7 @@
+CREATE TABLE donations (
+    id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    name VARACHAR(255) NOT NULL,
+    photo VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    userid int FOREIGN KEY REFERENCES users(id)
+);
