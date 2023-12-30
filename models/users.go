@@ -22,13 +22,21 @@ type User struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
+type UserRequestBody struct {
+	Email           string `json:"email"`
+	PhoneNumber     string `json:"phone_number"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
+}
+
 type Claims struct {
+	ID          string `json:"id"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
 	jwt.RegisteredClaims
 }
 
-func (u *User) RegisterUser(user User) (*User, error) {
+func (u *UserRequestBody) RegisterUser(user UserRequestBody) (*UserRequestBody, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -50,49 +58,20 @@ func (u *User) RegisterUser(user User) (*User, error) {
 
 }
 
-func (u *User) GenerateAuthToken(user User) (string, error) {
-	//fileName := ".env"
-	path, err := filepath.Abs(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = godotenv.Load(filepath.Join(path))
-	if err != nil {
-		return "", errors.New("cannot load .env for jwt")
-	}
-
-	jwtKey := os.Getenv("JWTSECRET")
-	claims := &Claims{
-		Email:       user.Email,
-		PhoneNumber: user.PhoneNumber,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(jwtKey))
-
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func (u *User) FindByEmail(user User) (bool, error) {
+func (u *UserRequestBody) FindByEmail(email string) (bool, error) {
+	var user = new(User)
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
-	q := "SELECT email FROM users WHERE email = ?"
-	row := db.QueryRowContext(ctx, q, user.Email)
-	err := row.Scan(&user.Email)
+	q := "SELECT id, email  FROM users WHERE email = ?"
+	row := db.QueryRowContext(ctx, q, email)
+	err := row.Scan(&user.ID, &user.Email)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (u *User) hashPassword(user User) (string, error) {
+func (u *UserRequestBody) hashPassword(user UserRequestBody) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", errors.New("something went wrong with password hashing")
@@ -100,7 +79,7 @@ func (u *User) hashPassword(user User) (string, error) {
 	return string(bytes), nil
 }
 
-func (u *User) PasswordCompare(user User) bool {
+func (u *UserRequestBody) PasswordCompare(user UserRequestBody) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 	var dbUser User
@@ -128,4 +107,54 @@ func (u *User) PasswordCompare(user User) bool {
 		return false
 	}
 	return true
+}
+
+func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	path, err := filepath.Abs(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = godotenv.Load(filepath.Join(path))
+	if err != nil {
+		return "", errors.New("cannot load .env for jwt")
+	}
+
+	// Getting the user from db
+	var dbUser User
+	query := `SELECT * FROM users WHERE email = ?`
+	row := db.QueryRowContext(ctx, query, user.Email)
+	err = row.Scan(
+		&dbUser.ID,
+		&dbUser.Email,
+		&dbUser.PhoneNumber,
+		&dbUser.Password,
+		&dbUser.CreateAt,
+		&dbUser.UpdatedAt,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jwtKey := os.Getenv("JWTSECRET")
+	claims := &Claims{
+		ID:          dbUser.ID,
+		Email:       dbUser.Email,
+		PhoneNumber: dbUser.PhoneNumber,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(jwtKey))
+
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }
