@@ -25,6 +25,7 @@ func Routes() http.Handler {
 
 	router.Post("/api/v1/users/auth/register", controllers.CreateUser)
 	router.Post("/api/v1/users/auth/login", controllers.LoginUser)
+	router.Get("/api/v1/users/profile", controllers.GetProfile)
 
 	return router
 }

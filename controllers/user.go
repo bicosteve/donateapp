@@ -4,7 +4,14 @@ import (
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -95,8 +102,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := userReqBody.GenerateAuthToken(*userReqBody)
-
+	tokenString, err := userReqBody.GenerateAuthToken(*userReqBody)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": err})
 		helpers.MessageLogs.ErrorLog.Println(err)
@@ -104,32 +110,71 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Setting the cookie on headers
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   token,
-		Expires: time.Now().Add(time.Hour * 1),
-	})
-
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Path:     "/",
+		SameSite: 4,
+		Secure:   true,
+		Expires:  time.Now().Add(time.Hour * 24),
+	}
+	http.SetCookie(w, cookie)
+	r.AddCookie(cookie)
 }
 
-//func GetProfile(w http.ResponseWriter, r *http.Request) {
-//	cookie, err := r.Cookie("token")
-//	if err != nil {
-//		if err == http.ErrNoCookie {
-//			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Forbidden"})
-//			return
-//		}
-//
-//		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Bad Request"})
-//		return
-//	}
-//
-//	tokenStr := cookie.Value
-//
-//	claims := &models.Claims{}
-//
-//	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-//		func(t *jwt.Token) (interface{}, error) {
-//			return jwtKey, nil
-//		})
-//}
+// Get user profile -> GET -> /api/users/profile
+func GetProfile(w http.ResponseWriter, r *http.Request) {
+	path, err := filepath.Abs(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = godotenv.Load(filepath.Join(path))
+	if err != nil {
+		log.Fatal(err)
+	}
+	jwtKey := os.Getenv("JWTSECRET")
+
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		if err == http.ErrNoCookie {
+			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Forbidden. No Cookie"})
+			return
+		}
+		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Bad Request"})
+		return
+	}
+
+	tokenStr := cookie.Value
+	claims := &models.Claims{}
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Invalid token"})
+			return
+		}
+
+		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Something went wrong"})
+		return
+
+	}
+
+	if !tkn.Valid {
+		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Unauthorized"})
+		return
+	}
+	var user models.User
+	userID, _ := strconv.Atoi(claims.ID)
+	userProfile, err := user.GetProfile(userID)
+
+	if err != nil {
+		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": "Internal Server Error"})
+		return
+	}
+
+	helpers.WriteJSON(w, http.StatusOK, userProfile)
+}
