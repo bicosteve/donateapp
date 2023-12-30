@@ -146,7 +146,7 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 		Email:       dbUser.Email,
 		PhoneNumber: dbUser.PhoneNumber,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	}
 
@@ -157,4 +157,20 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func (u *User) GetProfile(userId int) (*User, error) {
+	//var user = new(User)
+	var user User
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+	q := `SELECT id, email,phone_number  FROM users WHERE id = ?`
+	row := db.QueryRowContext(ctx, q, userId)
+	err := row.Scan(&user.ID, &user.Email, &user.PhoneNumber)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &user, nil
+
 }

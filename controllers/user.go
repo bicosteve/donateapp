@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -115,7 +116,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		SameSite: 4,
 		Secure:   true,
-		Expires:  time.Now().Add(time.Second * 20),
+		Expires:  time.Now().Add(time.Hour * 24),
 	}
 	http.SetCookie(w, cookie)
 	r.AddCookie(cookie)
@@ -166,6 +167,14 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Unauthorized"})
 		return
 	}
+	var user models.User
+	userID, _ := strconv.Atoi(claims.ID)
+	userProfile, err := user.GetProfile(userID)
 
-	fmt.Println([]byte(claims.Email))
+	if err != nil {
+		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": "Internal Server Error"})
+		return
+	}
+
+	helpers.WriteJSON(w, http.StatusOK, userProfile)
 }
