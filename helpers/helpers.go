@@ -96,8 +96,8 @@ func IsValidEmail(email string) bool {
 	return govalidator.IsEmail(email)
 }
 
-func CheckPhoneNumber(user models.User) bool {
-	phoneNumber := strings.TrimSpace(user.PhoneNumber)
+func CheckPhoneNumber(phoneNumber string) bool {
+	phoneNumber = strings.TrimSpace(phoneNumber)
 	if phoneNumber == "" {
 		return false
 	}
@@ -107,9 +107,9 @@ func CheckPhoneNumber(user models.User) bool {
 	return true
 }
 
-func ValidatePassword(user models.User) bool {
-	password := strings.TrimSpace(user.Password)
-	confirmPassword := strings.TrimSpace(user.ConfirmPassword)
+func ValidatePassword(password string, confirmPassword string) bool {
+	password = strings.TrimSpace(password)
+	confirmPassword = strings.TrimSpace(confirmPassword)
 	if password == "" {
 		return false
 	}

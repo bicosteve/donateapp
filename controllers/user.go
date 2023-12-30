@@ -10,15 +10,15 @@ import (
 
 // POST User -> api/v1/user/register
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
+	userReqBody := new(models.UserRequestBody)
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&userReqBody)
 	if err != nil {
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
-	isValidNumber := helpers.CheckPhoneNumber(user)
+	isValidNumber := helpers.CheckPhoneNumber(userReqBody.PhoneNumber)
 	if isValidNumber == false {
 		msg := "Phone number must be 10 numbers"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
@@ -26,7 +26,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isValidEmail := helpers.IsValidEmail(user.Email)
+	isValidEmail := helpers.IsValidEmail(userReqBody.Email)
 	if isValidEmail == false {
 		msg := "Provide valid email address"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
@@ -34,7 +34,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isValidPassword := helpers.ValidatePassword(user)
+	isValidPassword := helpers.ValidatePassword(userReqBody.Password, userReqBody.ConfirmPassword)
 	if isValidPassword == false {
 		msg := "Password cannot be empty & must match confirm password"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
@@ -42,16 +42,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isUser, err := user.FindByEmail(user)
+	isUser, err := userReqBody.FindByEmail(userReqBody.Email)
 	if isUser == true {
 		msg := "User already exists"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
-		//helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
-	createdUser, err := user.RegisterUser(user)
+	createdUser, err := userReqBody.RegisterUser(*userReqBody)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": err})
 		helpers.ErrorJSON(w, err, http.StatusBadRequest)
@@ -64,30 +63,31 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // Login POST -> /api/users/login
 func LoginUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	userReqBody := new(models.UserRequestBody)
+	//user := new(models.User)
+	err := json.NewDecoder(r.Body).Decode(&userReqBody)
 	if err != nil {
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
-	isValidEmail := helpers.IsValidEmail(user.Email)
+	isValidEmail := helpers.IsValidEmail(userReqBody.Email)
 	if isValidEmail == false {
-		msg := "Provide valid email address"
+		msg := "Invalid email address"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
 		return
 	}
 
-	isUser, err := user.FindByEmail(user)
-	if isUser == false {
+	userExists, err := userReqBody.FindByEmail(userReqBody.Email)
+	if userExists == false {
 		msg := "User does not exist"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
-	isValidPassword := user.PasswordCompare(user)
+	isValidPassword := userReqBody.PasswordCompare(*userReqBody)
 	if isValidPassword == false {
 		msg := "Password and confirm password do not match"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
@@ -95,7 +95,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := user.GenerateAuthToken(user)
+	token, err := userReqBody.GenerateAuthToken(*userReqBody)
 
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": err})
