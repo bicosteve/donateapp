@@ -23,9 +23,13 @@ func Routes() http.Handler {
 		MaxAge:           300,
 	}))
 
+	// User Routes
 	router.Post("/api/v1/users/auth/register", controllers.CreateUser)
 	router.Post("/api/v1/users/auth/login", controllers.LoginUser)
 	router.Get("/api/v1/users/profile", controllers.GetProfile)
+
+	// Donation Routes /api/v1/donations/donation
+	router.Post("/api/v1/donations/donate", controllers.CreateDonation)
 
 	return router
 }
