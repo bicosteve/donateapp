@@ -4,13 +4,7 @@ import (
 	"donateapp/helpers"
 	"donateapp/models"
 	"encoding/json"
-	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
-	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -71,7 +65,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // Login POST -> /api/users/login
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
-	//user := new(models.User)
 	err := json.NewDecoder(r.Body).Decode(&userReqBody)
 	if err != nil {
 		helpers.MessageLogs.ErrorLog.Println(err)
@@ -124,49 +117,24 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 // Get user profile -> GET -> /api/users/profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	path, err := filepath.Abs(".env")
+	jwtKey, err := helpers.LoadJWTKEY() // Load JWT Key
 	if err != nil {
-		log.Fatal(err)
-	}
-	err = godotenv.Load(filepath.Join(path))
-	if err != nil {
-		log.Fatal(err)
-	}
-	jwtKey := os.Getenv("JWTSECRET")
-
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		fmt.Println(err)
-		if err == http.ErrNoCookie {
-			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Forbidden. No Cookie"})
-			return
-		}
-		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Bad Request"})
+		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
 	}
 
-	tokenStr := cookie.Value
-	claims := &models.Claims{}
-	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(jwtKey), nil
-		})
-
+	tokenString, err := helpers.GenerateTokenString(r) // Generate token string
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Invalid token"})
-			return
-		}
-
-		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Something went wrong"})
-		return
-
-	}
-
-	if !tkn.Valid {
-		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": "Unauthorized"})
+		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
 	}
+
+	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
+	if err != nil {
+		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
+		return
+	}
+
 	var user models.User
 	userID, _ := strconv.Atoi(claims.ID)
 	userProfile, err := user.GetProfile(userID)
