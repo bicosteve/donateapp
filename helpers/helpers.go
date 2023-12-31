@@ -4,11 +4,15 @@ import (
 	"donateapp/models"
 	"encoding/json"
 	"errors"
-	"github.com/asaskevich/govalidator"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
 type Envelope map[string]interface{}
@@ -120,4 +124,52 @@ func ValidatePassword(password string, confirmPassword string) bool {
 		return false
 	}
 	return true
+}
+
+func LoadJWTKEY() (string, error) {
+	path, err := filepath.Abs(".env")
+	if err != nil {
+		return "", err
+	}
+	err = godotenv.Load(filepath.Join(path))
+	if err != nil {
+		return "", err
+	}
+	jwtKey := os.Getenv("JWTSECRET")
+	return jwtKey, nil
+}
+
+func GenerateTokenString(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("token")
+
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return "", err
+		}
+		return "", err
+	}
+
+	tokenString := cookie.Value
+	return tokenString, nil
+}
+
+func ValidClaim(claims *models.Claims, tokenString string, jwtKey string) (*models.Claims, error) {
+	tkn, err := jwt.ParseWithClaims(tokenString, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			log.Fatal(err)
+			return nil, err
+		}
+		log.Fatal(err)
+		return nil, err
+	}
+
+	if !tkn.Valid {
+		log.Fatal(err)
+		return nil, err
+	}
+	return claims, nil
 }
