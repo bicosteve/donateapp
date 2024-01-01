@@ -29,3 +29,31 @@ func (d *Donation) AddDonations(donation Donation, userid int) (*Donation, error
 
 	return &donation, nil
 }
+
+func (d *Donation) GetDonationByID(id int) (*Donation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+
+	defer cancel()
+
+	q := `SELECT * FROM donations WHERE id = ?`
+
+	row := db.QueryRowContext(ctx, q, id)
+
+	var donation Donation
+
+	err := row.Scan(
+		&donation.ID,
+		&donation.Name,
+		&donation.Photo,
+		&donation.Location,
+		&donation.CreatedAt,
+		&donation.UpdatedAt,
+		&donation.UserID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &donation, nil
+}
