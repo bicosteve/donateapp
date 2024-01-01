@@ -32,6 +32,8 @@ func Routes() http.Handler {
 	router.Post("/api/v1/donations/donate", controllers.CreateDonation)
 	// Donation /api/v1/donations/donation/{id}
 	router.Get("/api/v1/donations/donation/{id}", controllers.GetDonationByID)
+	// Donations /api/v1/donations/donations
+	router.Get("/api/v1/donations/", controllers.GetDonations)
 
 	return router
 }

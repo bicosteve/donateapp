@@ -67,5 +67,15 @@ func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, http.StatusOK, donation)
+}
 
+// GET -> /api/v1/donations/donations
+func GetDonations(w http.ResponseWriter, r *http.Request) {
+	allDonations, err := donation.GetAllDonations()
+	if err != nil {
+		helpers.WriteJSON(w, http.StatusNotFound, helpers.Envelope{"msg": "No donations found"})
+		helpers.MessageLogs.ErrorLog.Println(err)
+		return
+	}
+	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"donations": allDonations})
 }
