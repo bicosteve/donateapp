@@ -20,6 +20,12 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isValid := helpers.ValidateDonationPayload(donationData)
+	if !isValid {
+		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "All fields are required"})
+		return
+	}
+
 	jwtKey, err := helpers.LoadJWTKEY() // Load JWT Key
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})

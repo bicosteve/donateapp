@@ -153,7 +153,9 @@ func GenerateTokenString(r *http.Request) (string, error) {
 	return tokenString, nil
 }
 
-func ValidClaim(claims *models.Claims, tokenString string, jwtKey string) (*models.Claims, error) {
+func ValidClaim(
+	claims *models.Claims, tokenString string, jwtKey string,
+) (*models.Claims, error) {
 	tkn, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(jwtKey), nil
@@ -172,4 +174,24 @@ func ValidClaim(claims *models.Claims, tokenString string, jwtKey string) (*mode
 		return nil, err
 	}
 	return claims, nil
+}
+
+func ValidateDonationPayload(donation models.Donation) bool {
+	name := strings.TrimSpace(donation.Name)
+	photo := strings.TrimSpace(donation.Photo)
+	location := strings.TrimSpace(donation.Location)
+
+	if name == "" {
+		return false
+	}
+
+	if photo == "" {
+		return false
+	}
+
+	if location == "" {
+		return false
+	}
+
+	return true
 }
