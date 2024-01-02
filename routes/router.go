@@ -28,12 +28,11 @@ func Routes() http.Handler {
 	router.Post("/api/v1/users/auth/login", controllers.LoginUser)
 	router.Get("/api/v1/users/profile", controllers.GetProfile)
 
-	// Donation Routes /api/v1/donations/donate
 	router.Post("/api/v1/donations/donate", controllers.CreateDonation)
-	// Donation /api/v1/donations/donation/{id}
 	router.Get("/api/v1/donations/donation/{id}", controllers.GetDonationByID)
-	// Donations /api/v1/donations/donations
 	router.Get("/api/v1/donations/", controllers.GetDonations)
+	router.Put("/api/v1/donations/donation/{id}", controllers.UpdateDonation)
+	router.Delete("/api/v1/donations/donation/{id}", controllers.DeleteDonation)
 
 	return router
 }

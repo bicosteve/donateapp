@@ -37,6 +37,7 @@ func (d *Donation) GetDonationByID(id int) (*Donation, error) {
 	row := db.QueryRowContext(ctx, q, id)
 
 	var donation Donation
+
 	err := row.Scan(
 		&donation.ID,
 		&donation.Name,
@@ -57,6 +58,8 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	var donations []*Donation
+
 	q := `SELECT * FROM donations`
 	rows, err := db.QueryContext(ctx, q)
 
@@ -64,11 +67,8 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 		log.Fatal(err)
 	}
 
-	var donations []*Donation
-
 	for rows.Next() {
 		var donation Donation
-
 		err := rows.Scan(
 			&donation.ID,
 			&donation.Name,
@@ -86,4 +86,45 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 		donations = append(donations, &donation)
 	}
 	return donations, nil
+}
+
+func (d *Donation) UpdateDonation(
+	id int, userid int, body Donation,
+) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	q := `UPDATE donations SET name = ?, photo = ?, location = ?, updated_at = ? WHERE id = ? AND userid = ?`
+	_, err := db.ExecContext(
+		ctx,
+		q,
+		body.Name,
+		body.Photo,
+		body.Location,
+		time.Now(),
+		id,
+		userid,
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	//_ = row
+
+	return "Updated successfully", nil
+}
+
+func (d *Donation) DeleteDonation(id int, userid int) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	q := `DELETE FROM donations WHERE id = ? AND userid = ?`
+	_, err := db.ExecContext(ctx, q, id, userid)
+	//row, err := db.ExecContext(ctx, q, id, userid)
+
+	if err != nil {
+		return "", err
+	}
+	return "Deleted successfully", nil
 }
