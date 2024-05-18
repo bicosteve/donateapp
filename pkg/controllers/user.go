@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// POST User -> api/v1/user/register
+// POST User -> server/v1/user/register
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
 
@@ -62,7 +62,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusCreated, createdUser)
 }
 
-// Login POST -> /api/users/login
+// Login POST -> /server/users/login
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
 	err := json.NewDecoder(r.Body).Decode(&userReqBody)
@@ -115,7 +115,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	r.AddCookie(cookie)
 }
 
-// Get user profile -> GET -> /api/users/profile
+// Get user profile -> GET -> /server/users/profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
 	jwtKey, err := helpers.LoadJWTKEY() // Load JWT Key
 	if err != nil {

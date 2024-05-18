@@ -12,7 +12,7 @@ import (
 var donation models2.Donation
 var donationData models2.Donation
 
-// POST -> /api/v1/donations/donation
+// POST -> /server/v1/donations/donation
 func CreateDonation(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&donationData)
 	if err != nil {
@@ -54,7 +54,7 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GET -> /api/v1/donations/donation/{id}
+// GET -> /server/v1/donations/donation/{id}
 func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -73,7 +73,7 @@ func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusOK, donation)
 }
 
-// GET -> /api/v1/donations/donations
+// GET -> /server/v1/donations/donations
 func GetDonations(w http.ResponseWriter, r *http.Request) {
 	allDonations, err := donation.GetAllDonations()
 	if err != nil {
@@ -85,7 +85,7 @@ func GetDonations(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update donations
-// PUT -> /api/v1/nodations/donate/{id}
+// PUT -> /server/v1/nodations/donate/{id}
 func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -131,7 +131,7 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update donations
-// DELETE -> /api/v1/nodations/donation/{id}
+// DELETE -> /server/v1/nodations/donation/{id}
 func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {

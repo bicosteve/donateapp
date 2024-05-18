@@ -24,15 +24,15 @@ func Routes() http.Handler {
 	}))
 
 	// User Routes
-	router.Post("/api/v1/users/auth/register", controllers2.CreateUser)
-	router.Post("/api/v1/users/auth/login", controllers2.LoginUser)
-	router.Get("/api/v1/users/profile", controllers2.GetProfile)
+	router.Post("/server/v1/users/auth/register", controllers2.CreateUser)
+	router.Post("/server/v1/users/auth/login", controllers2.LoginUser)
+	router.Get("/server/v1/users/profile", controllers2.GetProfile)
 
-	router.Post("/api/v1/donations/donate", controllers2.CreateDonation)
-	router.Get("/api/v1/donations/donation/{id}", controllers2.GetDonationByID)
-	router.Get("/api/v1/donations/", controllers2.GetDonations)
-	router.Put("/api/v1/donations/donation/{id}", controllers2.UpdateDonation)
-	router.Delete("/api/v1/donations/donation/{id}", controllers2.DeleteDonation)
+	router.Post("/server/v1/donations/donate", controllers2.CreateDonation)
+	router.Get("/server/v1/donations/donation/{id}", controllers2.GetDonationByID)
+	router.Get("/server/v1/donations/", controllers2.GetDonations)
+	router.Put("/server/v1/donations/donation/{id}", controllers2.UpdateDonation)
+	router.Delete("/server/v1/donations/donation/{id}", controllers2.DeleteDonation)
 
 	return router
 }
