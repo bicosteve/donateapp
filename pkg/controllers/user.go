@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	"donateapp/helpers"
-	"donateapp/models"
-	"encoding/json"
+	"donateapp/pkg/helpers"
+	"donateapp/pkg/models"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,14 +12,15 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
 
-	err := json.NewDecoder(r.Body).Decode(&userReqBody)
+	err := helpers.ReadJSON(w, r, userReqBody)
 	if err != nil {
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
 	isValidNumber := helpers.CheckPhoneNumber(userReqBody.PhoneNumber)
-	if isValidNumber == false {
+	if !isValidNumber {
 		msg := "Phone number must be 10 numbers"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
@@ -28,7 +28,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isValidEmail := helpers.IsValidEmail(userReqBody.Email)
-	if isValidEmail == false {
+	if !isValidEmail {
 		msg := "Provide valid email address"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
@@ -36,7 +36,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isValidPassword := helpers.ValidatePassword(userReqBody.Password, userReqBody.ConfirmPassword)
-	if isValidPassword == false {
+	if !isValidPassword {
 		msg := "Password cannot be empty & must match confirm password"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
@@ -44,7 +44,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isUser, err := userReqBody.FindByEmail(userReqBody.Email)
-	if isUser == true {
+	if isUser {
 		msg := "User already exists"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(err)
@@ -62,17 +62,19 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusCreated, createdUser)
 }
 
-// Login POST -> /api/users/login
+// Login POST -> api/users/login
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
-	err := json.NewDecoder(r.Body).Decode(&userReqBody)
+
+	err := helpers.ReadJSON(w, r, userReqBody)
 	if err != nil {
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
 	isValidEmail := helpers.IsValidEmail(userReqBody.Email)
-	if isValidEmail == false {
+	if !isValidEmail {
 		msg := "Invalid email address"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(msg)
@@ -80,7 +82,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userExists, err := userReqBody.FindByEmail(userReqBody.Email)
-	if userExists == false {
+	if !userExists {
 		msg := "User does not exist"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(err)
@@ -88,7 +90,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isValidPassword := userReqBody.PasswordCompare(*userReqBody)
-	if isValidPassword == false {
+	if !isValidPassword {
 		msg := "Password and confirm password do not match"
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": msg})
 		helpers.MessageLogs.ErrorLog.Println(err)
@@ -117,13 +119,13 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 // Get user profile -> GET -> /api/users/profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	jwtKey, err := helpers.LoadJWTKEY() // Load JWT Key
+	jwtKey, err := helpers.LoadJWTKEY()
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
 	}
 
-	tokenString, err := helpers.GenerateTokenString(r) // Generate token string
+	tokenString, err := helpers.GenerateTokenString(r)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return

@@ -2,31 +2,27 @@ package models
 
 import (
 	"context"
+	"donateapp/pkg/entities"
 	"log"
 	"time"
 )
 
-type Donation struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Photo     string    `json:"photo"`
-	Location  string    `json:"location"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UserID    string    `json:"userid"`
-}
+type Donation entities.Donation
+type DonationBody entities.DonationBody
 
-func (d *Donation) AddDonations(donation Donation, userid int) (*Donation, error) {
+func (d *Donation) AddDonation(
+	donation DonationBody, userid int,
+) (body *DonationBody, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	q := "INSERT INTO donations (name,photo,location,created_at,updated_at,userid) VALUES (?,?,?,?,?,?)"
-	_, err := db.ExecContext(ctx, q, donation.Name, donation.Photo, donation.Location, time.Now(), time.Now(), userid)
+	_, err = db.ExecContext(ctx, q, donation.Name, donation.Photo, donation.Location, time.Now(), time.Now(), userid)
 
 	if err != nil {
 		return nil, err
 	}
-	return &donation, nil
+	return body, nil
 }
 
 func (d *Donation) GetDonationByID(id int) (*Donation, error) {
@@ -85,12 +81,13 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 
 		donations = append(donations, &donation)
 	}
+
 	return donations, nil
 }
 
 func (d *Donation) UpdateDonation(
-	id int, userid int, body Donation,
-) (string, error) {
+	id int, userid int, body DonationBody,
+) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -107,12 +104,10 @@ func (d *Donation) UpdateDonation(
 	)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	//_ = row
-
-	return "Updated successfully", nil
+	return nil
 }
 
 func (d *Donation) DeleteDonation(id int, userid int) (string, error) {
@@ -121,7 +116,6 @@ func (d *Donation) DeleteDonation(id int, userid int) (string, error) {
 
 	q := `DELETE FROM donations WHERE id = ? AND userid = ?`
 	_, err := db.ExecContext(ctx, q, id, userid)
-	//row, err := db.ExecContext(ctx, q, id, userid)
 
 	if err != nil {
 		return "", err

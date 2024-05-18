@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"donateapp/pkg/entities"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
@@ -12,29 +13,10 @@ import (
 	"time"
 )
 
-type User struct {
-	ID              string    `json:"id"`
-	Email           string    `json:"email"`
-	PhoneNumber     string    `json:"phone_number"`
-	Password        string    `json:"password"`
-	ConfirmPassword string    `json:"confirm_password"`
-	CreateAt        time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-}
+type UserRequestBody entities.UserRequestBody
+type User entities.User
+type Claims entities.Claims
 
-type UserRequestBody struct {
-	Email           string `json:"email"`
-	PhoneNumber     string `json:"phone_number"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirm_password"`
-}
-
-type Claims struct {
-	ID          string `json:"id"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-	jwt.RegisteredClaims
-}
 
 func (u *UserRequestBody) RegisterUser(user UserRequestBody) (*UserRequestBody, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
