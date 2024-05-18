@@ -4,19 +4,19 @@ import (
 	"context"
 	"donateapp/pkg/entities"
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRequestBody entities.UserRequestBody
 type User entities.User
 type Claims entities.Claims
-
 
 func (u *UserRequestBody) RegisterUser(user UserRequestBody) (*UserRequestBody, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
@@ -77,7 +77,6 @@ func (u *UserRequestBody) PasswordCompare(user UserRequestBody) bool {
 	)
 
 	if err != nil {
-		log.Fatal(err)
 		return false
 	}
 
@@ -88,6 +87,7 @@ func (u *UserRequestBody) PasswordCompare(user UserRequestBody) bool {
 	if err != nil {
 		return false
 	}
+
 	return true
 }
 
@@ -97,7 +97,7 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 
 	path, err := filepath.Abs(".env")
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	err = godotenv.Load(filepath.Join(path))
@@ -105,7 +105,6 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 		return "", errors.New("cannot load .env for jwt")
 	}
 
-	// Getting the user from db
 	var dbUser User
 	query := `SELECT * FROM users WHERE email = ?`
 	row := db.QueryRowContext(ctx, query, user.Email)
@@ -119,7 +118,7 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	jwtKey := os.Getenv("JWTSECRET")
@@ -138,11 +137,11 @@ func (u *UserRequestBody) GenerateAuthToken(user UserRequestBody) (string, error
 	if err != nil {
 		return "", err
 	}
+
 	return tokenString, nil
 }
 
 func (u *User) GetProfile(userId int) (*User, error) {
-	//var user = new(User)
 	var user User
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
