@@ -4,6 +4,7 @@ import (
 	models2 "donateapp/pkg/models"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -32,22 +33,21 @@ var MessageLogs = &Message{
 
 func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1048576
-
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	r.Close = true
 
 	decode := json.NewDecoder(r.Body)
 
-	err := decode.Decode(data)
-
+	err := decode.Decode(&data)
 	if err != nil {
 		return err
 	}
 
 	err = decode.Decode(&struct{}{})
-	// Should not have {}{} but {{}}
+	// Should not accept json like {}{} but accept this {{}}
 
-	if err != nil {
-		return errors.New("Invalid JSON object")
+	if err != io.EOF {
+		return errors.New("invalid JSON value.")
 	}
 
 	return nil
@@ -176,7 +176,7 @@ func ValidClaim(
 	return claims, nil
 }
 
-func ValidateDonationPayload(donation models2.Donation) bool {
+func ValidateDonationPayload(donation models2.DonationBody) bool {
 	name := strings.TrimSpace(donation.Name)
 	photo := strings.TrimSpace(donation.Photo)
 	location := strings.TrimSpace(donation.Location)

@@ -2,20 +2,20 @@ package controllers
 
 import (
 	"donateapp/pkg/helpers"
-	models2 "donateapp/pkg/models"
-	"encoding/json"
+	"donateapp/pkg/models"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
 
-var donation models2.Donation
-var donationData models2.Donation
+var donation models.Donation
 
-// POST -> /server/v1/donations/donation
+// POST -> /api/v1/donations/donation
 func CreateDonation(w http.ResponseWriter, r *http.Request) {
-	err := json.NewDecoder(r.Body).Decode(&donationData)
+	var donationData models.DonationBody
+	err := helpers.ReadJSON(w, r, &donationData)
 	if err != nil {
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println("Error", err)
 		return
 	}
@@ -37,7 +37,7 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
@@ -54,7 +54,7 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GET -> /server/v1/donations/donation/{id}
+// GET -> /api/v1/donations/donation/{id}
 func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -73,7 +73,7 @@ func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusOK, donation)
 }
 
-// GET -> /server/v1/donations/donations
+// GET -> /api/v1/donations/donations
 func GetDonations(w http.ResponseWriter, r *http.Request) {
 	allDonations, err := donation.GetAllDonations()
 	if err != nil {
@@ -85,8 +85,9 @@ func GetDonations(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update donations
-// PUT -> /server/v1/nodations/donate/{id}
+// PUT -> /api/v1/nodations/donate/{id}
 func UpdateDonation(w http.ResponseWriter, r *http.Request) {
+	var donationData models.DonationBody
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Invalid id"})
@@ -94,9 +95,9 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&donationData)
+	err = helpers.ReadJSON(w, r, &donationData)
 	if err != nil {
-		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Error while decoding the payload"})
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
@@ -113,7 +114,7 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
@@ -131,7 +132,7 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update donations
-// DELETE -> /server/v1/nodations/donation/{id}
+// DELETE -> /api/v1/nodations/donation/{id}
 func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -152,7 +153,7 @@ func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return

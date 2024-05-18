@@ -3,18 +3,18 @@ package controllers
 import (
 	"donateapp/pkg/helpers"
 	"donateapp/pkg/models"
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-// POST User -> server/v1/user/register
+// POST User -> api/v1/user/register
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
 
-	err := json.NewDecoder(r.Body).Decode(&userReqBody)
+	err := helpers.ReadJSON(w, r, userReqBody)
 	if err != nil {
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
@@ -62,11 +62,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusCreated, createdUser)
 }
 
-// Login POST -> /server/users/login
+// Login POST -> api/users/login
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userReqBody := new(models.UserRequestBody)
-	err := json.NewDecoder(r.Body).Decode(&userReqBody)
+
+	err := helpers.ReadJSON(w, r, userReqBody)
 	if err != nil {
+		helpers.ErrorJSON(w, err, http.StatusBadRequest)
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
@@ -115,15 +117,15 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	r.AddCookie(cookie)
 }
 
-// Get user profile -> GET -> /server/users/profile
+// Get user profile -> GET -> /api/users/profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	jwtKey, err := helpers.LoadJWTKEY() // Load JWT Key
+	jwtKey, err := helpers.LoadJWTKEY()
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
 	}
 
-	tokenString, err := helpers.GenerateTokenString(r) // Generate token string
+	tokenString, err := helpers.GenerateTokenString(r)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return

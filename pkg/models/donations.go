@@ -2,31 +2,27 @@ package models
 
 import (
 	"context"
+	"donateapp/pkg/entities"
 	"log"
 	"time"
 )
 
-type Donation struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Photo     string    `json:"photo"`
-	Location  string    `json:"location"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UserID    string    `json:"userid"`
-}
+type Donation entities.Donation
+type DonationBody entities.DonationBody
 
-func (d *Donation) AddDonations(donation Donation, userid int) (*Donation, error) {
+func (d *Donation) AddDonations(
+	donation DonationBody, userid int,
+) (don *Donation, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	q := "INSERT INTO donations (name,photo,location,created_at,updated_at,userid) VALUES (?,?,?,?,?,?)"
-	_, err := db.ExecContext(ctx, q, donation.Name, donation.Photo, donation.Location, time.Now(), time.Now(), userid)
+	_, err = db.ExecContext(ctx, q, donation.Name, donation.Photo, donation.Location, time.Now(), time.Now(), userid)
 
 	if err != nil {
 		return nil, err
 	}
-	return &donation, nil
+	return don, nil
 }
 
 func (d *Donation) GetDonationByID(id int) (*Donation, error) {
@@ -89,7 +85,7 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 }
 
 func (d *Donation) UpdateDonation(
-	id int, userid int, body Donation,
+	id int, userid int, body DonationBody,
 ) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
