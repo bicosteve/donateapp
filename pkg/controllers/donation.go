@@ -3,9 +3,10 @@ package controllers
 import (
 	"donateapp/pkg/helpers"
 	"donateapp/pkg/models"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 var donation models.Donation
@@ -31,6 +32,7 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
 	}
+
 	tokenString, err := helpers.GenerateTokenString(r) // Generate token string
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
@@ -44,14 +46,13 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, _ := strconv.Atoi(claims.ID)
-	donation, err := donation.AddDonations(donationData, userID)
+	_, err = donation.AddDonation(donationData, userID)
 	if err != nil {
-		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": "Cannot add donations"})
+		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": err})
 		return
 	}
 
-	helpers.WriteJSON(w, http.StatusCreated, donation)
-
+	helpers.WriteJSON(w, http.StatusCreated, helpers.Envelope{"msg": "Created"})
 }
 
 // GET -> /api/v1/donations/donation/{id}
@@ -65,7 +66,7 @@ func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 
 	donation, err := donation.GetDonationByID(id)
 	if err != nil {
-		helpers.WriteJSON(w, http.StatusNotFound, helpers.Envelope{"msg": "Not found"})
+		helpers.WriteJSON(w, http.StatusNotFound, helpers.Envelope{"msg": err})
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
@@ -75,16 +76,16 @@ func GetDonationByID(w http.ResponseWriter, r *http.Request) {
 
 // GET -> /api/v1/donations/donations
 func GetDonations(w http.ResponseWriter, r *http.Request) {
-	allDonations, err := donation.GetAllDonations()
+	donations, err := donation.GetAllDonations()
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusNotFound, helpers.Envelope{"msg": "No donations found"})
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
-	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"donations": allDonations})
+
+	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"donations": donations})
 }
 
-// Update donations
 // PUT -> /api/v1/nodations/donate/{id}
 func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 	var donationData models.DonationBody
@@ -121,17 +122,16 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, _ := strconv.Atoi(claims.ID)
-	msg, err := donation.UpdateDonation(id, userID, donationData)
+	err = donation.UpdateDonation(id, userID, donationData)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusBadRequest, helpers.Envelope{"msg": "Error while updating"})
 		helpers.MessageLogs.ErrorLog.Println(err)
 		return
 	}
 
-	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"msg": msg})
+	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"msg": "Updated successful"})
 }
 
-// Update donations
 // DELETE -> /api/v1/nodations/donation/{id}
 func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -163,8 +163,8 @@ func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 	msg, err := donation.DeleteDonation(id, userID)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusInternalServerError, helpers.Envelope{"msg": err})
+		return
 	}
 
 	helpers.WriteJSON(w, http.StatusOK, helpers.Envelope{"msg": msg})
-	return
 }

@@ -10,9 +10,9 @@ import (
 type Donation entities.Donation
 type DonationBody entities.DonationBody
 
-func (d *Donation) AddDonations(
+func (d *Donation) AddDonation(
 	donation DonationBody, userid int,
-) (don *Donation, err error) {
+) (body *DonationBody, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -22,7 +22,7 @@ func (d *Donation) AddDonations(
 	if err != nil {
 		return nil, err
 	}
-	return don, nil
+	return body, nil
 }
 
 func (d *Donation) GetDonationByID(id int) (*Donation, error) {
@@ -81,12 +81,13 @@ func (d *Donation) GetAllDonations() ([]*Donation, error) {
 
 		donations = append(donations, &donation)
 	}
+
 	return donations, nil
 }
 
 func (d *Donation) UpdateDonation(
 	id int, userid int, body DonationBody,
-) (string, error) {
+) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -103,12 +104,10 @@ func (d *Donation) UpdateDonation(
 	)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	//_ = row
-
-	return "Updated successfully", nil
+	return nil
 }
 
 func (d *Donation) DeleteDonation(id int, userid int) (string, error) {
@@ -117,7 +116,6 @@ func (d *Donation) DeleteDonation(id int, userid int) (string, error) {
 
 	q := `DELETE FROM donations WHERE id = ? AND userid = ?`
 	_, err := db.ExecContext(ctx, q, id, userid)
-	//row, err := db.ExecContext(ctx, q, id, userid)
 
 	if err != nil {
 		return "", err

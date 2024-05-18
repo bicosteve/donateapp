@@ -41,7 +41,6 @@ func ConnectMysql(dsn string) (*DB, error) {
 }
 
 func testDB(d *sql.DB) error {
-
 	err := d.Ping()
 
 	if err != nil {

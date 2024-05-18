@@ -17,31 +17,9 @@ type Config struct {
 }
 
 type Application struct {
-	//Add Configs and Models
 	Config Config
 	Models models.Models
 }
-
-func (app *Application) Serve() error {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatal("Error loading .env file for app configs")
-	}
-
-	port := os.Getenv("PORT")
-	fmt.Printf("Listening to port %v ....\n", port)
-
-	server := &http.Server{
-		Addr: fmt.Sprintf(":%s", port),
-		// To add route handler
-		Handler: routes.Routes(),
-	}
-
-	return server.ListenAndServe()
-}
-
-// run server: nodemon --exec go run main.go --signal SIGTERM
 
 func main() {
 
@@ -56,7 +34,6 @@ func main() {
 		Port: os.Getenv("PORT"),
 	}
 
-	// Connecting to DB -> dsn:"user:password@tcp(host:port)/dbname"
 	dbHost := os.Getenv("DBHOST")
 	dbUser := os.Getenv("DBUSER")
 	dbPort := os.Getenv("DBPORT")
@@ -78,12 +55,28 @@ func main() {
 		Models: models.NewConnections(dbConnection.DB),
 	}
 
-	err = app.Serve()
-
+	err = app.serve()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(".env file loaded")
+}
 
+func (app *Application) serve() error {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file for app configs")
+	}
+
+	port := os.Getenv("PORT")
+	fmt.Printf("Listening to port %v ....\n", port)
+
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%s", port),
+		// To add route handler
+		Handler: routes.Routes(),
+	}
+
+	return server.ListenAndServe()
 }
