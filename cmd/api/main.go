@@ -1,9 +1,9 @@
 package main
 
 import (
-	"donateapp/db"
-	"donateapp/models"
-	"donateapp/routes"
+	"donateapp/pkg/db"
+	"donateapp/pkg/models"
+	"donateapp/pkg/routes"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,7 +68,7 @@ func main() {
 	dbConnection, err := db.ConnectMysql(dsn)
 
 	if err != nil {
-		log.Fatal("Cannot connect to database")
+		log.Fatal("Cannot connect to sql")
 	}
 
 	defer dbConnection.DB.Close()

@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	"donateapp/helpers"
-	"donateapp/models"
+	"donateapp/pkg/helpers"
+	models2 "donateapp/pkg/models"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
 
-var donation models.Donation
-var donationData models.Donation
+var donation models2.Donation
+var donationData models2.Donation
 
 // POST -> /api/v1/donations/donation
 func CreateDonation(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func CreateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
@@ -113,7 +113,7 @@ func UpdateDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return
@@ -152,7 +152,7 @@ func DeleteDonation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := helpers.ValidClaim(&models.Claims{}, tokenString, jwtKey)
+	claims, err := helpers.ValidClaim(&models2.Claims{}, tokenString, jwtKey)
 	if err != nil {
 		helpers.WriteJSON(w, http.StatusUnauthorized, helpers.Envelope{"msg": err})
 		return

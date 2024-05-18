@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"donateapp/controllers"
+	controllers2 "donateapp/pkg/controllers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -24,15 +24,15 @@ func Routes() http.Handler {
 	}))
 
 	// User Routes
-	router.Post("/api/v1/users/auth/register", controllers.CreateUser)
-	router.Post("/api/v1/users/auth/login", controllers.LoginUser)
-	router.Get("/api/v1/users/profile", controllers.GetProfile)
+	router.Post("/api/v1/users/auth/register", controllers2.CreateUser)
+	router.Post("/api/v1/users/auth/login", controllers2.LoginUser)
+	router.Get("/api/v1/users/profile", controllers2.GetProfile)
 
-	router.Post("/api/v1/donations/donate", controllers.CreateDonation)
-	router.Get("/api/v1/donations/donation/{id}", controllers.GetDonationByID)
-	router.Get("/api/v1/donations/", controllers.GetDonations)
-	router.Put("/api/v1/donations/donation/{id}", controllers.UpdateDonation)
-	router.Delete("/api/v1/donations/donation/{id}", controllers.DeleteDonation)
+	router.Post("/api/v1/donations/donate", controllers2.CreateDonation)
+	router.Get("/api/v1/donations/donation/{id}", controllers2.GetDonationByID)
+	router.Get("/api/v1/donations/", controllers2.GetDonations)
+	router.Put("/api/v1/donations/donation/{id}", controllers2.UpdateDonation)
+	router.Delete("/api/v1/donations/donation/{id}", controllers2.DeleteDonation)
 
 	return router
 }

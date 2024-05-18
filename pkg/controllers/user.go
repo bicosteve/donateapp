@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"donateapp/helpers"
-	"donateapp/models"
+	"donateapp/pkg/helpers"
+	"donateapp/pkg/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
