@@ -4,7 +4,6 @@ import (
 	"context"
 	"donateapp/pkg/entities"
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -32,7 +31,6 @@ func (u *UserRequestBody) RegisterUser(user UserRequestBody) (*UserRequestBody, 
 	_, err = db.ExecContext(
 		ctx, q, user.Email, user.PhoneNumber, hashedPassword, time.Now(), time.Now())
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
@@ -150,7 +148,7 @@ func (u *User) GetProfile(userId int) (*User, error) {
 	err := row.Scan(&user.ID, &user.Email, &user.PhoneNumber)
 
 	if err != nil {
-		log.Fatal(err)
+		return &User{}, err
 	}
 	return &user, nil
 
