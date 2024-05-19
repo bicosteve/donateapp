@@ -29,7 +29,7 @@ To be able to run this application in your local machine, you will need the foll
 
 4. Run the application
    I have provided an environment variables examples on .env.example.
-   Use the tables dir to find the scripts of created tables for the application.
+   Use the `sql` dir to find the scripts of created tables for the application.
    After creating the tables and providing the environment vars;
    run **make dev** this will start the server on your localhost
 
