@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	models2 "donateapp/pkg/models"
+	"donateapp/pkg/models"
 	"encoding/json"
 	"errors"
 	"io"
@@ -84,7 +84,7 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
 		statusCode = status[0]
 	}
 
-	var payload models2.JsonResponse
+	var payload models.JsonResponse
 	payload.Error = true
 	payload.Message = err.Error()
 
@@ -154,8 +154,8 @@ func GenerateTokenString(r *http.Request) (string, error) {
 }
 
 func ValidClaim(
-	claims *models2.Claims, tokenString string, jwtKey string,
-) (*models2.Claims, error) {
+	claims *models.Claims, tokenString string, jwtKey string,
+) (*models.Claims, error) {
 	tkn, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(jwtKey), nil
@@ -176,7 +176,7 @@ func ValidClaim(
 	return claims, nil
 }
 
-func ValidateDonationPayload(donation models2.DonationBody) bool {
+func ValidateDonationPayload(donation models.DonationBody) bool {
 	name := strings.TrimSpace(donation.Name)
 	photo := strings.TrimSpace(donation.Photo)
 	location := strings.TrimSpace(donation.Location)
